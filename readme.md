@@ -1,5 +1,7 @@
 # Mobile Dogs
 ## Приложение для бездомных собак  
+### app scheme
+https://www.figma.com/file/HFADok2OtkYcMbL5KGzcdR/Untitled?type=whiteboard&node-id=0%3A1&t=XV9LhMpKWo6bP0DM-1
 ### Пользователь может:
 #### с ошейником
 - просмотреть список доступных ошейников 
