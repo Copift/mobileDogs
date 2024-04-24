@@ -1,6 +1,6 @@
 from sqlalchemy import Column, ForeignKey, Integer, String,DATETIME
 from sqlalchemy.orm import relationship
-import users.models
+
 from database import BaseDBModel, engine
 
 

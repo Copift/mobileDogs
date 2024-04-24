@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from fastapi import APIRouter
 from typing import Annotated
-from typing import Union
+
 from fastapi import Depends, HTTPException,status
 from fastapi.security import OAuth2PasswordRequestForm
 
@@ -14,11 +14,10 @@ from database import DBSession
 from users import crud
 from users.crud import authenticate_user, create_access_token, get_current_active_user
 from users.schemas import Token,User,UserInDB
-from tasks.router import router as taskRouter
 
 
-router = APIRouter(prefix='/user')
-router.include_router(taskRouter)
+
+router = APIRouter(prefix='/tasks')
 def get_db():
     db = DBSession()
     try:
@@ -26,10 +25,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/add/", response_model=UserInDB)
-def add(user: User, db : DBSession = Depends(get_db)):
-    user=crud.create_user(db=db, user=user)
-    return user
+
 
 
 @router.post("/token")

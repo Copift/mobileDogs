@@ -4,6 +4,7 @@ from pydantic import BaseModel
 
 
 class User(BaseModel):
+    collars: list
     nicname: str
     password: str
     email: str | None = None
@@ -22,9 +23,10 @@ class TokenData(BaseModel):
 
 
 class UserInDB(BaseModel):
+    id: int
     nicname: str
     email: str | None = None
     hashed_password: str
-
+    collars: list
 
 

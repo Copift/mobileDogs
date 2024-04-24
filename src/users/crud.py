@@ -3,16 +3,39 @@ from datetime import timedelta, datetime, timezone
 
 from sqlalchemy.orm import Session
 
-
+import collar.schemas
+import mainModels
 from database import DBSession
 from config import pwd_context,oauth2_scheme
 from config import  SECRET_KEY, ALGORITHM
 import  users.models as models
 import users.schemas as schemas
+import collar.schemas as collarSchemas
+import collar.models as collarModels
 from jose import JWTError, jwt
 from fastapi.routing import Annotated,HTTPException
 
 from fastapi import status,Depends
+
+def get_collars(db: Session,user:schemas.UserInDB):
+    collars=db.query(collarModels.Collar).filter(collarModels.Collar.owner_id==user.id).all()
+    return collars
+
+def add_collar(db: Session,user:schemas.UserInDB, collar:collarSchemas.CollarBase):
+
+    collar=db.query(collarModels.Collar).filter(collarModels.Collar.mac == collar.mac).one_or_none()
+    if collar is None:
+        return HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail="Could not find collar with this mac",
+
+    )
+    setattr(collar, 'owner_id', user.id)
+
+    db.commit()
+    db.refresh(collar)
+    return  mainModels.Status(status=True)
+
 def create_user(db: Session, user: schemas.User) -> http.HTTPStatus.CREATED:
 
      db_user = models.User(nicname=user.nicname, email =user.email,hashed_password=get_password_hash(user.password))
