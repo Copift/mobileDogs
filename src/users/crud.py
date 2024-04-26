@@ -14,7 +14,7 @@ import collar.schemas as collarSchemas
 import collar.models as collarModels
 from jose import JWTError, jwt
 from fastapi.routing import Annotated,HTTPException
-
+import users.tasks.models
 from fastapi import status,Depends
 
 def get_collars(db: Session,user:schemas.UserInDB):

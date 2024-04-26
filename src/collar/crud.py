@@ -17,6 +17,7 @@ def create_collar(db: Session, collar: schemas.Collar) -> http.HTTPStatus.CREATE
  db.commit()
  db.refresh(db_collar)
  return db_collar
+
 def send_cood(db: Session, collar: schemas.CollarSend) -> mainModels.Status:
 
  migrate = models.Migrate(mac=collar.mac, coord =collar.coord,
@@ -25,6 +26,7 @@ def send_cood(db: Session, collar: schemas.CollarSend) -> mainModels.Status:
  db.commit()
  db.refresh(migrate)
  return mainModels.Status(status=True)
+
 def get_migrate(db: Session, collar: schemas.CollarBase) -> list:
  collardb:Collar =db.query(Collar).filter(Collar.mac == collar.mac).one_or_none()
  migrate=collardb.migrate

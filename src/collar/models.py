@@ -7,7 +7,6 @@ from database import BaseDBModel, engine
 class Collar(BaseDBModel):
     __tablename__ = "collar"
 
-  #  id = Column(Integer,autoincrement=True,)
     mac = Column(String,unique=True, primary_key=True)
     description = Column(String)
     owner_id = Column(Integer, ForeignKey("users.id"))

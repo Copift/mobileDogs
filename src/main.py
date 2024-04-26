@@ -2,7 +2,6 @@
 from collar.router import router as collarRouter
 from users.router import router as userRouter
 
-
 from fastapi import  FastAPI
 
 
