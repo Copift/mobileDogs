@@ -1,5 +1,5 @@
 from datetime import datetime
-from users.tasks import models as models
+from tasks import models as models
 from pydantic import BaseModel
 from users.models import User
 class TaskBase(BaseModel):

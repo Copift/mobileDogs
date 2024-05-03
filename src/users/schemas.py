@@ -28,5 +28,6 @@ class UserInDB(BaseModel):
     email: str | None = None
     hashed_password: str
     collars: list
-
+    tasksCreated: list| None = None
+    tasksGeted: list| None = None
 

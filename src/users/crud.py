@@ -3,7 +3,6 @@ from datetime import timedelta, datetime, timezone
 
 from sqlalchemy.orm import Session
 
-import collar.schemas
 import mainModels
 from database import DBSession
 from config import pwd_context,oauth2_scheme
@@ -14,7 +13,6 @@ import collar.schemas as collarSchemas
 import collar.models as collarModels
 from jose import JWTError, jwt
 from fastapi.routing import Annotated,HTTPException
-import users.tasks.models
 from fastapi import status,Depends
 
 def get_collars(db: Session,user:schemas.UserInDB):
@@ -43,12 +41,7 @@ def create_user(db: Session, user: schemas.User) -> http.HTTPStatus.CREATED:
      db.commit()
      db.refresh(db_user)
      return db_user
-def get_db():
-    db = DBSession()
-    try:
-        yield db
-    finally:
-        db.close()
+
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -59,7 +52,7 @@ def get_password_hash(password):
 
 
 def get_user(db: Session, username: str):
-    user=db.query(models.User).filter(models.User.nicname == username).first()
+    user= db.query(models.User).filter(models.User.nicname == username).one_or_none()
     if user:
         return user
     else:
@@ -84,7 +77,12 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-
+def get_db():
+    db = DBSession()
+    try:
+        yield db
+    finally:
+        db.close()
 
 def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db : DBSession = Depends(get_db)):
     credentials_exception = HTTPException(

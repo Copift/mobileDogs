@@ -71,7 +71,7 @@ db: DBSession = Depends(get_db),
 
 
 
-@router.get("/me/items/")
+@router.get("/me/collars/")
 async def read_own_items(
         current_user: Annotated[UserInDB, Depends(get_current_active_user)],
         db: DBSession = Depends(get_db),

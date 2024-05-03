@@ -20,5 +20,3 @@ class Migrate(BaseDBModel):
     coord = Column(String)
     time=Column(DATETIME)
     collar = relationship("Collar", back_populates="migrate")
-
-BaseDBModel.metadata.create_all(bind=engine)
