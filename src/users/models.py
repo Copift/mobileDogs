@@ -10,7 +10,8 @@ class User(BaseDBModel):
     email = Column(String,default=None)
     hashed_password=Column(String)
     collars = relationship("Collar", back_populates="user")
-    tasksCreated = relationship("tasks.models.Task", back_populates="created_by", foreign_keys="Task.created_by_id")
-    tasksGeted=relationship("tasks.models.Task", back_populates="send_to", foreign_keys="Task.send_to_id")
+    tasksCreated = relationship("Task", back_populates="created_by", foreign_keys="Task.created_by_id")
+    tasksGeted=relationship("Task", back_populates="send_to", foreign_keys="Task.send_to_id")
+
 
 

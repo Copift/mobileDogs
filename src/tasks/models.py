@@ -13,8 +13,9 @@ class Task(BaseDBModel):
     verify_id=Column(Integer, ForeignKey("Verify.id"), default=None)
     status_id=Column(Integer, ForeignKey("TaskStatus.id"), default=None)
     datetime_start = Column(DATETIME)
-    created_by = relationship("users.models.User", back_populates="tasksCreated", foreign_keys="Task.created_by_id")
-    send_to = relationship("users.models.User", back_populates="tasksGeted", foreign_keys="Task.send_to_id")
+    datetime_end = Column(DATETIME)
+    created_by = relationship("User", back_populates="tasksCreated", foreign_keys="Task.created_by_id")
+    send_to = relationship("User", back_populates="tasksGeted", foreign_keys="Task.send_to_id")
     type = relationship("TaskType", back_populates="tasks", uselist=False, foreign_keys="Task.type_id")
     status = relationship("TaskStatus", back_populates="tasks", uselist=False, foreign_keys="Task.status_id")
 

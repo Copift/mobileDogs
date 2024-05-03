@@ -13,7 +13,8 @@ from config import ACCESS_TOKEN_EXPIRE_MINUTES
 from database import DBSession
 from users import crud
 from users.crud import authenticate_user, create_access_token, get_current_active_user
-from users.schemas import Token,User,UserInDB
+from users.schemas import Token, User, UserInDB, UserAdd
+
 #from tasks.router import router as taskRouter
 
 
@@ -27,7 +28,7 @@ def get_db():
         db.close()
 
 @router.post("/add/", response_model=UserInDB)
-def add(user: User, db : DBSession = Depends(get_db)):
+def add(user: UserAdd, db : DBSession = Depends(get_db)):
     user=crud.create_user(db=db, user=user)
     return user
 

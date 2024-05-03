@@ -34,7 +34,7 @@ def add_collar(db: Session,user:schemas.UserInDB, collar:collarSchemas.CollarBas
     db.refresh(collar)
     return  mainModels.Status(status=True)
 
-def create_user(db: Session, user: schemas.User) -> http.HTTPStatus.CREATED:
+def create_user(db: Session, user: schemas.UserAdd) -> http.HTTPStatus.CREATED:
 
      db_user = models.User(nicname=user.nicname, email =user.email,hashed_password=get_password_hash(user.password))
      db.add(db_user)

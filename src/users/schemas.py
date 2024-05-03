@@ -2,12 +2,16 @@
 from pydantic import BaseModel
 
 
-
-class User(BaseModel):
-    collars: list
+class UserAdd(BaseModel):
     nicname: str
     password: str
     email: str | None = None
+class User(BaseModel):
+    collars:list
+    nicname: str
+    password: str
+    email: str | None = None
+
 
 
 class Token(BaseModel):
