@@ -8,17 +8,18 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 import collar
 import mainModels
+import support.schemas
 from config import ACCESS_TOKEN_EXPIRE_MINUTES
 
 from database import DBSession
-from users import crud
-from users.crud import authenticate_user, create_access_token, get_current_active_user
+from users import crud, roles
+from users.crud import authenticate_user, create_access_token, get_current_active_user, PermissionChecker
 from users.schemas import Token, User, UserInDB, UserAdd
 
 #from tasks.router import router as taskRouter
 
 
-router = APIRouter(prefix='/user')
+router = APIRouter(prefix='/user', tags=["users"])
 #router.include_router(taskRouter)
 def get_db():
     db = DBSession()
@@ -27,9 +28,13 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/add/", response_model=UserInDB)
+@router.put("/add/", response_model=UserInDB)
 def add(user: UserAdd, db : DBSession = Depends(get_db)):
-    user=crud.create_user(db=db, user=user)
+    user=crud.create_user(db=db, user=user,role_id=roles.standard.id)
+    return user
+@router.put("/add_support/",dependencies=[Depends(PermissionChecker( required_permissions="admin"))], response_model=UserInDB)
+def add(user: UserAdd, db : DBSession = Depends(get_db)):
+    user=crud.create_user(db=db, user=user,role_id=roles.support.id)
     return user
 
 
@@ -55,26 +60,39 @@ async def login_for_access_token(
 
 @router.get("/me/", response_model=UserInDB)
 async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[User, Depends(PermissionChecker( required_permissions="standard"))],
 ):
     return current_user
 @router.post("/add_collar/", response_model=mainModels.Status)
 async def add_collar(
-    current_user:Annotated[UserInDB, Depends(get_current_active_user)],
+    current_user:Annotated[UserInDB, Depends(PermissionChecker( required_permissions="standard"))],
         collar: collar.schemas.CollarBase,
-db: DBSession = Depends(get_db),
-
-
-):
-
+db: DBSession = Depends(get_db)):
     status=crud.add_collar(db,current_user,collar)
     return status
 
+@router.put("/add_alert/",response_model=support.schemas.AlertInDb)#,dependencies=[Depends(PermissionChecker( required_permissions="standard"))])
+async def add_alert(
+        current_user: Annotated[UserInDB, Depends(PermissionChecker(required_permissions="standard"))],
+        alert: support.schemas.Alert,
+db: DBSession = Depends(get_db)):
+    alert=crud.create_alert(db,alert)
+    return alert
+
+@router.post("/get_user_by_id/")
+async def add_collar(
+    current_user:Annotated[UserInDB,  Depends(PermissionChecker( required_permissions="standard"))],
+        id: mainModels.Id,
+        db: DBSession = Depends(get_db),
+):
+
+    user=crud.get_user_id(db,id)
+    return user
 
 
 @router.get("/me/collars/")
 async def read_own_items(
-        current_user: Annotated[UserInDB, Depends(get_current_active_user)],
+        current_user: Annotated[UserInDB,Depends(PermissionChecker( required_permissions="standard"))],
         db: DBSession = Depends(get_db),
 ):
 

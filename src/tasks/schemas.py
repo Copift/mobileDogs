@@ -1,31 +1,36 @@
 from datetime import datetime
-from users.schemas import UserInDB
+from users.schemas import UserData
 from pydantic import BaseModel, Field
 from typing import Optional
+from sqlalchemy.orm import Query
 
-class TaskType(BaseModel):
+from pydantic import BaseModel, field_validator
+
+from mainModels import OrmBase
+
+class TaskType(OrmBase):
     id: int
     deadline_time: int
     name: str
     desc: Optional[str] = None
-    verify_type_id: int
-
-    class Config:
-        orm_mode = True
+    #verify_type_id: int
 
 
-class TaskStatus(BaseModel):
+class TaskStatus(OrmBase):
     id: int
     name: str
     desc: Optional[str] = None
 
     class Config:
         orm_mode = True
+class getTasks(OrmBase):
+    status_id:Optional[list[int]] = None
+    created_by:Optional[bool] = None
+    sended_to: Optional[bool] = None
+
+class Verify(OrmBase):
 
 
-class Verify(BaseModel):
-    id: int
-    verify_type_id: int
     comment: Optional[str] = None
     img: Optional[bytes] = None
     geo: Optional[str] = None
@@ -34,7 +39,12 @@ class Verify(BaseModel):
         orm_mode = True
 
 
-class VerifyType(BaseModel):
+class VerifyInDb(Verify):
+    id: int
+    canceled: bool
+
+
+class VerifyType(OrmBase):
     id: int
     name: str
     verify_id: Optional[int] = None
@@ -44,24 +54,26 @@ class VerifyType(BaseModel):
         orm_mode = True
 
 
-class TaskinDb(BaseModel):
+class Task(OrmBase):
     id: int
     created_by_id: int
     send_to_id: int
     type_id: int
-    verify_id: int
+    verify_id: Optional[int] = None
     status_id: int
+
+    verify:Optional[Verify] =    None
     datetime_start: Optional[datetime] = None
     datetime_end: Optional[datetime] = None
-    created_by: Optional['UserInDB']
-    send_to: Optional['UserInDB'] = None
-    type: Optional['TaskType'] = None
-    status: Optional['TaskStatus'] = None
+    created_by: UserData
+    send_to: UserData
+    type: TaskType
+    status: TaskStatus
 
     class Config:
         orm_mode = True
-class TaskBase(BaseModel):
+class TaskBase(OrmBase):
     # Fields that are common to all tasks
-
+    collar_mac:str
     send_to_id: int
     type_id: int

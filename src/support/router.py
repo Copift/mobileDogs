@@ -4,20 +4,18 @@ from fastapi import APIRouter
 from typing import Annotated
 
 from fastapi import Depends, HTTPException,status
-from fastapi.security import OAuth2PasswordRequestForm
 
-import collar
 import mainModels
-from config import ACCESS_TOKEN_EXPIRE_MINUTES
-
+import support.models as models
+import support.schemas as schemas
 from database import DBSession
-from users import crud
-from users.crud import authenticate_user, create_access_token, get_current_active_user
-from users.schemas import Token,User,UserInDB
+
+from users.crud import get_current_active_user, PermissionChecker
+from users.schemas import UserInDB
+import support.crud as crud
 
 
-
-router = APIRouter(prefix='/tasks')
+router = APIRouter(prefix='/support', tags=["support"])
 def get_db():
     db = DBSession()
     try:
@@ -27,50 +25,18 @@ def get_db():
 
 
 
-
-@router.post("/token")
-async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-        db: DBSession = Depends(get_db)
-) -> Token:
-
-    user = authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.nicname}, expires_delta=access_token_expires
-    )
-    return Token(access_token=access_token, token_type="bearer")
-
-
-@router.get("/me/", response_model=UserInDB)
-async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_active_user)],
-):
-    return current_user
-@router.post("/add_collar/", response_model=mainModels.Status)
-async def add_collar(
-    current_user:Annotated[UserInDB, Depends(get_current_active_user)],
-        collar: collar.schemas.CollarBase,
-db: DBSession = Depends(get_db),
-
-
-):
-
-    status=crud.add_collar(db,current_user,collar)
-    return status
-
-
-
-@router.get("/me/items/")
+@router.get("/get_alerts")
 async def read_own_items(
-        current_user: Annotated[UserInDB, Depends(get_current_active_user)],
+        current_user: Annotated[UserInDB, Depends(PermissionChecker(required_permissions="support"))],
         db: DBSession = Depends(get_db),
 ):
+    return crud.get_alerts(db)
 
-    return current_user.collars
+@router.post("/finish_alert")
+async def read_own_items(
+        current_user: Annotated[UserInDB, Depends(PermissionChecker(required_permissions="support"))],
+        alert_id: mainModels.Id,
+        db: DBSession = Depends(get_db)
+
+):
+    return crud.finish_alert(db,current_user,alert_id)

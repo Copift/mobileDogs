@@ -1,24 +1,31 @@
 import datetime
 from typing import Optional, Union
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-from pydantic import (
- BaseModel,
- EmailStr
-)
-class CollarBase(BaseModel):
+from mainModels import OrmBase
+
+
+class CollarBase(OrmBase):
  mac: str
+
+
+class CollarCreate(CollarBase):
+ description: str
 
 class CollarSend(CollarBase):
  coord: str
 
-class Collar(CollarBase):
- description: str
- owner_id: Optional[str] = Field(default=None)
- 
-
-class Migrate(BaseModel):
+class Migrate(OrmBase):
  mac:str
  coord:str
  time: datetime.datetime
 
+class Collar(CollarBase):
+ description: str
+ migrate: list[Migrate]
+ owner_id: Optional[int] = Field(default=None)
+
+
+
+class CollarWithCheck(Collar):
+    checks:list |None

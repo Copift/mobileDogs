@@ -5,7 +5,7 @@ import logging
 from config import DATABASE_URL
 
 engine = create_engine(
- DATABASE_URL,  echo=True,connect_args={"check_same_thread": False}
+ DATABASE_URL,  echo=True, pool_pre_ping=True
 )
 DBSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 BaseDBModel = declarative_base()
