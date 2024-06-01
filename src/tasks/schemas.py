@@ -12,8 +12,7 @@ class TaskType(OrmBase):
     id: int
     deadline_time: int
     name: str
-    desc: Optional[str] = None
-    #verify_type_id: int
+    desc: Optional[str] | None
 
 
 class TaskStatus(OrmBase):
@@ -24,9 +23,9 @@ class TaskStatus(OrmBase):
     class Config:
         orm_mode = True
 class getTasks(OrmBase):
-    status_id:Optional[list[int]] = None
-    created_by:Optional[bool] = None
-    sended_to: Optional[bool] = None
+    status_id:Optional[list[int]] | None
+    created_by:Optional[bool] | None
+    sended_to: Optional[bool] | None
 
 class Verify(OrmBase):
 

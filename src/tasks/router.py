@@ -11,7 +11,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 import collar
 import mainModels
 from config import ACCESS_TOKEN_EXPIRE_MINUTES
-
+from logger import logger
 from database import DBSession
 import tasks.crud as crud
 
@@ -21,13 +21,7 @@ from users.schemas import Token,User,UserInDB
 
 
 router = APIRouter(prefix='/tasks', tags=["tasks"])
-def get_db():
-    db = DBSession()
-    try:
-        yield db
-    finally:
-        db.close()
-
+from database import get_db
 
 
 
@@ -37,6 +31,12 @@ async def add_task(
        task:schemas.TaskBase,
         db: DBSession = Depends(get_db)
 ) :
+    """
+         add task :
+    -- **collar_mac**:str  to collar mac
+    -- **send_to_id**: id  to user
+    -- **type_id**: id of type
+         """
     taskType = db.query(models.TaskType).get(task.type_id)
     userInDb = db.query(usersModels.User).get(task.send_to_id)
     if userInDb == None:
@@ -63,7 +63,8 @@ async def add_task(
             detail="This collar at AlertList",
         )
     newTask=crud.add_task(db=db,user=current_user,task=task)
-
+    logger.info(
+        f"Adding task for collar with mac {task.collar_mac} and description {task.description} for user with id {current_user.id}")
     return newTask
 
 
@@ -74,9 +75,18 @@ async def my_task(
         db: DBSession = Depends(get_db),
 
 ):
-
-
+    """
+       **Name:** my_task
+       **Description:** This function retrieves tasks for the current user based on the specified status.
+       **Parameters:**
+           - **current_user** (UserInDB): The authenticated user object.
+           - **status** (schemas.getTasks): A schema object containing the status type id.
+           - **db** (DBSession): The database session object.
+       **Returns:**
+           - **my_tasks** (list[schemas.Task]): A list of tasks matching the specified status for the current user.
+       """
     user=current_user
+    logger.info(f"Getting tasks for user with id {current_user.id} with status {status.status}")
     my_tasks=crud.get_my_task(db=db,user=user,status=status)
     return my_tasks
 
@@ -90,7 +100,18 @@ async def add_verify(
         db: DBSession = Depends(get_db),
 
 ):
-
+    """
+       **Name:** add_verify
+       **Description:** This function adds a verify for a task associated with the current user.
+       **Parameters:**
+           - **current_user** (UserInDB): The authenticated user object.
+       - **verify** (schemas.Verify): A schema object containing the verify details.
+       - **taskId** (mainModels.Id=None): The id of the task to which the verify is being added. If not provided, it defaults to None.
+       - **db** (DBSession = Depends(get_db)): The database session object.
+       **Returns:**
+           - **new_verify** (schemas.Verify): A schema object containing the newly added verify details.
+       """
+    logger.info(f"Adding verify for task with id {taskId} for user with id {current_user.id}")
     new_verify=crud.send_verify(db=db,verify=verify,Id=taskId,user=current_user)
     return new_verify
 @router.post("/get_verify/")
@@ -100,7 +121,17 @@ async def check_verify(
         db: DBSession = Depends(get_db),
 
 ):
-
+    """
+     **Name:** get_verify
+     **Description:** This function retrieves the verify for a task associated with the current user.
+     **Parameters:**
+         - **current_user** (UserInDB): The authenticated user object.
+         - **task_id** (mainModels.Id): The id of the task for which the verify is being retrieved.
+         - **db** (DBSession = Depends(get_db)): The database session object.
+     **Returns:**
+         - **verify** (schemas.Verify): A schema object containing the verify details for the task.
+     """
+    logger.info(f"Getting verify for task with id {task_id} for user with id {current_user.id}")
     verify=crud.getVerify(db=db,id=task_id,user=current_user)
     return verify
 
@@ -111,7 +142,17 @@ async def check_verify(
         db: DBSession = Depends(get_db),
 
 ):
-
+    """
+        **Name:** final_task
+        **Description:** This function checks if a task has reached its final state for the current user.
+        **Parameters:**
+            - **current_user** (UserInDB): The authenticated user object.
+            - **task_id** (mainModels.Id): The id of the task for which the final state is being checked.
+            - **db** (DBSession = Depends(get_db)): The database session object.
+        **Returns:**
+            - **task** (schemas.Task): A schema object containing the task details.
+        """
+    logger.info(f"Checking final task for task with id {task_id} for user with id {current_user.id}")
     task=crud.final_task(db=db,id=task_id,user=current_user)
     return task
 
@@ -122,7 +163,17 @@ async def check_verify(
         db: DBSession = Depends(get_db),
 
 ):
-
+    """
+    **Name:** final_task_without_award
+    **Description:** This function checks if a task has reached its final state for the current user without awarding points.
+    **Parameters:**
+        - **current_user** (UserInDB): The authenticated user object.
+        - **task_id** (mainModels.Id): The id of the task for which the final state is being checked.
+        - **db** (DBSession = Depends(get_db)): The database session object.
+    **Returns:**
+        - **task** (schemas.Task): A schema object containing the task details.
+    """
+    logger.info(f"Checking final task without award for task with id {task_id} for user with id {current_user.id}")
     task=crud.final_task_without_award(db=db,id=task_id,user=current_user)
     return task
 
@@ -134,7 +185,21 @@ async def check_verify(
         db: DBSession = Depends(get_db),
 
 ):
+    """
+       Restarts a task for the current user.
 
+       Args:
+           current_user (UserInDB): The authenticated user object.
+           task_id (mainModels.Id): The id of the task to be restarted.
+           db (DBSession): The database session object.
+
+       Returns:
+           task (schemas.Task): A schema object containing the task details after restarting.
+
+       Raises:
+           HTTPException: If the task or user is not found.
+       """
+    logger.info(f"Restarting task for task with id {task_id} for user with id {current_user.id}")
     task=crud.restart_task(db=db,id=task_id,user=current_user)
     return task
 
@@ -144,6 +209,15 @@ async def my_task(
 
         db: DBSession = Depends(get_db)
 ):
+    """
+    **Name:** get_statuses
+    **Description:** This function retrieves all task statuses from the database.
+    **Parameters:**
+        - **db** (DBSession = Depends(get_db)): The database session object.
+    **Returns:**
+        - **statuses** (list[schemas.TaskStatus]): A list of task statuses.
+    """
+    logger.info(f"Getting statuses")
     statuses=crud.get_statuses(db=db)
     return statuses
 
@@ -153,5 +227,14 @@ async def my_task(
 
         db: DBSession = Depends(get_db)
 ):
+    """
+    **Name:** get_types
+    **Description:** This function retrieves all task types from the database.
+    **Parameters:**
+        - **db** (DBSession = Depends(get_db)): The database session object.
+    **Returns:**
+        - **types** (list[schemas.TaskType]): A list of task types.
+    """
+    logger.info(f"Getting types")
     statuses = crud.get_types(db=db)
     return statuses

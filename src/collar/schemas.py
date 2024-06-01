@@ -22,7 +22,7 @@ class Migrate(OrmBase):
 
 class Collar(CollarBase):
  description: str
- migrate: list[Migrate]
+ migrate: Optional[list[Migrate]]
  owner_id: Optional[int] = Field(default=None)
 
 

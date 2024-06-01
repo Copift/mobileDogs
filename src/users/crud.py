@@ -1,13 +1,9 @@
 import http
 from datetime import timedelta, datetime, timezone
-
 from sqlalchemy.orm import Session
-import users.roles as roles
 import mainModels
-import tasks.models
 from database import DBSession
-from config import pwd_context,oauth2_scheme
-from config import  SECRET_KEY, ALGORITHM
+from config import pwd_context,oauth2_scheme, SECRET_KEY, ALGORITHM
 import  users.models as models
 import users.schemas as schemas
 import collar.schemas as collarSchemas
@@ -16,13 +12,11 @@ import support.schemas as supportSchemas
 import support.models as supportModels
 import tasks.schemas as tasksSchemas
 import tasks.taskStatuses as statuses
-import tasks.taskTypes as types
-import tasks.taskVerifyTypes as verifyes
 import tasks.models as tasksModels
 from jose import JWTError, jwt
 from fastapi.routing import Annotated,HTTPException
 from fastapi import status,Depends
-
+import errors
 def get_collars(db: Session,user:schemas.UserInDB):
     """
      Retrieves all collars owned by the given user.
@@ -51,13 +45,8 @@ def add_collar(db: Session,user:schemas.UserInDB, collar:collarSchemas.CollarBas
        """
     collar=db.query(collarModels.Collar).filter(collarModels.Collar.mac == collar.mac).one_or_none()
     if collar is None:
-        raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND,
-        detail="Could not find collar with this mac",
-
-    )
+        raise errors.collar_not_found
     setattr(collar, 'owner_id', user.id)
-
     db.commit()
     db.refresh(collar)
     return  mainModels.Status(status=True)
@@ -194,19 +183,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
-def get_db():
-    """
-      Yields a database session for use in the application.
-
-      Yields:
-      Session: The database session.
-      """
-    db = DBSession()
-    try:
-        yield db
-    finally:
-        db.close()
-
+from database import get_db
 def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db : DBSession = Depends(get_db)):
     """
        Retrieves the current user from the database based on the given token.

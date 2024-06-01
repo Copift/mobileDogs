@@ -10,6 +10,13 @@ engine = create_engine(
 DBSession = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 BaseDBModel = declarative_base()
 
+def get_db():
+    db = DBSession()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 logging.basicConfig()
 logging.getLogger('sqlalchemy.engine').setLevel(logging.DEBUG)
